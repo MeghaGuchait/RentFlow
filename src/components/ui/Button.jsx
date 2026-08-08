@@ -23,7 +23,8 @@ export default function Button({
   children,
   ...props
 }) {
-  const Comp = motion[as] || motion.button;
+  const Comp = typeof as === "string" ? motion[as] || motion.button : motion(as);
+
   return (
     <Comp
       whileTap={{ scale: 0.97 }}
