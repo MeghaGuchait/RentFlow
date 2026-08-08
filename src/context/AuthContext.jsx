@@ -92,7 +92,9 @@ export function AuthProvider({ children }) {
   const loginWithFacebook = useCallback(() => {
     return new Promise((resolve) => {
       if (!FB_APP_ID) {
-        setError("Facebook App ID not configured (set VITE_FACEBOOK_APP_ID).");
+        const msg = "Facebook App ID not configured (set VITE_FACEBOOK_APP_ID).";
+        console.error(msg);
+        setError(msg);
         resolve(false);
         return;
       }
