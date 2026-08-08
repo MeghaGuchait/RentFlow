@@ -19,8 +19,8 @@ function buildMonthGrid(year, month) {
 
 export default function Schedule() {
   const { orders, products } = useStore();
-  const [cursor, setCursor] = useState(new Date(2026, 0, 1)); // Jan 2026, matches the wireframe
-  const [selectedDay, setSelectedDay] = useState(null);
+  const [cursor, setCursor] = useState(new Date(2026, 0, 1)); // Jan 2026, matches wireframe
+  const [selectedDay, setSelectedDay] = useState(6); // Default selected day for schedule details
 
   const year = cursor.getFullYear();
   const month = cursor.getMonth();
