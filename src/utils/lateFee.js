@@ -18,6 +18,8 @@ export const PERIODICITY_TO_MS = {
  * @param {number} lateFeePerHour   currency amount charged per late hour
  * @param {number} depositAmount   security deposit held for the order
  * @param {number} maxLateFee      optional cap on the total late fee
+ * @param {number} damageFee       additional fee for product damage
+ * @param {number} missingAccFee   additional fee for missing accessories
  */
 export function calculateSettlement({
   dueDate,
@@ -26,6 +28,8 @@ export function calculateSettlement({
   lateFeePerHour = 0,
   depositAmount = 0,
   maxLateFee = Infinity,
+  damageFee = 0,
+  missingAccFee = 0
 }) {
   const due = new Date(dueDate).getTime();
   const actual = new Date(actualDate).getTime();
@@ -36,9 +40,10 @@ export function calculateSettlement({
   const hoursLate = isLate ? Math.ceil(diffMs / (1000 * 60 * 60)) : 0;
 
   let lateFee = isLate ? hoursLate * lateFeePerHour : 0;
-  lateFee = Math.min(lateFee, maxLateFee, depositAmount);
+  lateFee = Math.min(lateFee, maxLateFee);
 
-  const refund = Math.max(depositAmount - lateFee, 0);
+  const totalDeductions = Math.min(lateFee + damageFee + missingAccFee, depositAmount);
+  const refund = Math.max(depositAmount - totalDeductions, 0);
 
   return {
     isLate,
@@ -46,6 +51,9 @@ export function calculateSettlement({
     lateFee: round2(lateFee),
     refund: round2(refund),
     depositAmount: round2(depositAmount),
+    damageFee: round2(damageFee),
+    missingAccFee: round2(missingAccFee),
+    totalDeductions: round2(totalDeductions),
   };
 }
 
