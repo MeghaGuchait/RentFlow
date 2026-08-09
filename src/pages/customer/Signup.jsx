@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { GoogleLogin } from "@react-oauth/google";
+import { User, Store, Tag } from "lucide-react";
 import RentFlowLogo from "../../components/Logo.jsx";
 import Input from "../../components/ui/Input.jsx";
 import Button from "../../components/ui/Button.jsx";
@@ -10,12 +11,16 @@ import { useAuth } from "../../context/AuthContext.jsx";
 export default function Signup() {
   const { signup, loginWithGoogle, loginWithFacebook, error, setError } = useAuth();
   const navigate = useNavigate();
+  const [isVendor, setIsVendor] = useState(false);
   const [form, setForm] = useState({
     firstName: "",
     lastName: "",
     email: "",
     password: "",
     confirmPassword: "",
+    companyName: "",
+    gstNo: "",
+    couponCode: "WELCOME10",
   });
   const [loading, setLoading] = useState(false);
   const [fbLoading, setFbLoading] = useState(false);
@@ -23,9 +28,27 @@ export default function Signup() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    const ok = await signup(form);
+    const ok = await signup({ ...form, isVendor });
     setLoading(false);
+    if (ok) {
+      navigate(isVendor ? "/admin" : "/shop");
+    }
+  };
+
+  const handleGoogleSuccess = (credentialResponse) => {
+    const ok = loginWithGoogle(credentialResponse);
     if (ok) navigate("/shop");
+  };
+
+  const handleFacebook = async () => {
+    setError("");
+    setFbLoading(true);
+    try {
+      const ok = await loginWithFacebook();
+      if (ok) navigate("/shop");
+    } finally {
+      setFbLoading(false);
+    }
   };
 
   return (
@@ -36,62 +59,129 @@ export default function Signup() {
         transition={{ duration: 0.4 }}
         className="w-full max-w-md rounded-2xl bg-white p-8 shadow-card"
       >
-        <div className="mb-6 flex justify-center">
-          <RentFlowLogo className="h-14 w-auto" />
+        <div className="mb-4 flex justify-center">
+          <RentFlowLogo className="h-12 w-auto" />
         </div>
 
-        <h2 className="text-center text-xl font-semibold text-brand-text">Create your account</h2>
-        <p className="mt-1 text-center text-sm text-brand-text/50">Start renting in minutes</p>
+        <h2 className="text-center text-xl font-semibold text-brand-text">
+          {isVendor ? "Vendor Partner Registration" : "Create Customer Account"}
+        </h2>
+        <p className="mt-1 text-center text-xs text-brand-text/50">
+          {isVendor ? "List your products & manage rental orders" : "Start renting premium products in minutes"}
+        </p>
 
-        {error && <div className="mt-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">{error}</div>}
+        <div className="mt-5 mb-4 flex rounded-xl bg-brand-text/5 p-1 text-xs font-semibold">
+          <button
+            type="button"
+            onClick={() => {
+              setIsVendor(false);
+              setError("");
+            }}
+            className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg transition-all ${
+              !isVendor ? "bg-white shadow-sm text-brand-accent" : "text-brand-text/60"
+            }`}
+          >
+            <User size={14} /> Customer Sign-up
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setIsVendor(true);
+              setError("");
+            }}
+            className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg transition-all ${
+              isVendor ? "bg-white shadow-sm text-purple-700" : "text-brand-text/60"
+            }`}
+          >
+            <Store size={14} /> Become a Vendor
+          </button>
+        </div>
 
-        <form onSubmit={handleSubmit} className="mt-6 space-y-4">
-          <div className="grid grid-cols-2 gap-3">
+        {error && (
+          <div className="mb-4 rounded-lg bg-red-50 px-3 py-2 text-xs text-red-600 border border-red-200">
+            {error}
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} className="space-y-3 text-xs">
+          <div className="grid grid-cols-2 gap-2.5">
             <Input
               label="First Name"
-              required
               value={form.firstName}
+              required
               onChange={(e) => setForm({ ...form, firstName: e.target.value })}
             />
             <Input
               label="Last Name"
-              required
               value={form.lastName}
+              required
               onChange={(e) => setForm({ ...form, lastName: e.target.value })}
             />
           </div>
+
           <Input
             label="Email ID"
             type="email"
-            required
             value={form.email}
             onChange={(e) => setForm({ ...form, email: e.target.value })}
+            required
           />
-          <div className="grid grid-cols-2 gap-3">
+
+          <div className="grid grid-cols-2 gap-2.5">
             <Input
               label="Password"
               type="password"
-              required
               value={form.password}
               onChange={(e) => setForm({ ...form, password: e.target.value })}
+              required
             />
             <Input
               label="Confirm Password"
               type="password"
-              required
               value={form.confirmPassword}
               onChange={(e) => setForm({ ...form, confirmPassword: e.target.value })}
+              required
             />
           </div>
-          <p className="text-xs text-brand-text/40">
-            6-12 characters, with an uppercase, lowercase, and one of @ $ &amp; _
+
+          <p className="text-[11px] text-brand-text/45 leading-tight">
+            * 6 to 12 characters, including at least 1 uppercase letter, 1 lowercase letter, and 1 special character (@, $, &amp;, _).
           </p>
-          <Button type="submit" className="w-full" disabled={loading}>
-            {loading ? "Creating account…" : "Register"}
+
+          {isVendor && (
+            <div className="grid grid-cols-2 gap-2.5">
+              <Input
+                label="Company Name"
+                required={isVendor}
+                value={form.companyName}
+                onChange={(e) => setForm({ ...form, companyName: e.target.value })}
+              />
+              <Input
+                label="GST No"
+                placeholder="27AAAAA0000A1Z5"
+                value={form.gstNo}
+                onChange={(e) => setForm({ ...form, gstNo: e.target.value })}
+              />
+            </div>
+          )}
+
+          <div className="rounded-xl bg-amber-50/70 p-2.5 border border-amber-200/60">
+            <div className="flex items-center gap-1.5 font-semibold text-amber-900 mb-1">
+              <Tag size={13} /> Signup Coupon Code (10% Discount)
+            </div>
+            <Input
+              placeholder="e.g. WELCOME10 or XXXX10"
+              value={form.couponCode}
+              onChange={(e) => setForm({ ...form, couponCode: e.target.value })}
+            />
+          </div>
+
+          <Button type="submit" className="w-full mt-2" disabled={loading}>
+            {loading ? "Creating account…" : isVendor ? "Register Vendor Account" : "Register Account"}
           </Button>
         </form>
 
-        <div className="my-6 flex items-center gap-3">
+        <div className="my-5 flex items-center gap-3">
           <div className="h-px flex-1 bg-brand-text/10" />
           <span className="text-xs text-brand-text/40">or continue with</span>
           <div className="h-px flex-1 bg-brand-text/10" />
@@ -100,23 +190,15 @@ export default function Signup() {
         <div className="space-y-3">
           <div className="flex justify-center [&>div]:w-full">
             <GoogleLogin
-              onSuccess={(cred) => loginWithGoogle(cred) && navigate("/shop")}
+              onSuccess={handleGoogleSuccess}
               onError={() => setError("Google sign-in failed.")}
               width="100%"
-              text="signup_with"
+              text="continue_with"
             />
           </div>
           <button
             type="button"
-            onClick={async () => {
-              setError("");
-              setFbLoading(true);
-              try {
-                if (await loginWithFacebook()) navigate("/shop");
-              } finally {
-                setFbLoading(false);
-              }
-            }}
+            onClick={handleFacebook}
             disabled={fbLoading}
             className="flex w-full items-center justify-center gap-3 rounded-lg border border-brand-text/15 py-2.5 text-sm font-medium text-brand-text hover:bg-brand-text/[0.03] disabled:opacity-60 disabled:pointer-events-none"
             aria-label="Continue with Facebook"
@@ -136,9 +218,9 @@ export default function Signup() {
           </button>
         </div>
 
-        <p className="mt-6 text-center text-sm text-brand-text/60">
+        <p className="mt-5 text-center text-xs text-brand-text/60">
           Already have an account?{" "}
-          <Link to="/login" className="font-medium text-brand-accent hover:underline">
+          <Link to="/login" className="font-semibold text-brand-accent hover:underline">
             Log In
           </Link>
         </p>
@@ -146,3 +228,4 @@ export default function Signup() {
     </div>
   );
 }
+
