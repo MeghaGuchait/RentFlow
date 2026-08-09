@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import React, { useState } from "react";
 import { Plus, Trash2 } from "lucide-react";
 import AdminLayout from "../../components/AdminLayout.jsx";
 import Card from "../../components/ui/Card.jsx";

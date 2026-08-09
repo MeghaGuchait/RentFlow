@@ -1,0 +1,162 @@
+datasource db {
+  provider = "sqlite"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id            String   @id @default(uuid())
+  email         String   @unique
+  name          String
+  passwordHash  String?  // Nullable to support social logins
+  role          String   @default("customer") // "admin", "vendor", "customer"
+  companyName   String?
+  gstNo         String?
+  appliedCoupon String?
+  discountPct   Float    @default(0.0)
+  provider      String   @default("password") // "password", "google", "facebook"
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  orders        Order[]
+}
+
+model Product {
+  id               String      @id @default(uuid())
+  name             String
+  category         String
+  image            String
+  pricePerDay      Float
+  pricePerHour     Float
+  pricePerWeek     Float
+  securityDeposit  Float
+  inStock          Int
+  variants         String?     // JSON string storing variants like { Color: ["Black", "Grey"], Brand: ["IKEA"] }
+  description      String
+  periodicity      String      @default("day") // "hour", "day", "week", "month"
+  pickupTime       String      @default("09:00")
+  returnTime       String      @default("18:00")
+  paddingHours     Float       @default(1.0)
+  lateFeePerHour   Float       @default(10.0)
+  gracePeriodHours Float       @default(1.0)
+  maxLateFee       Float       @default(200.0)
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+  orderItems       OrderItem[]
+  inventories      Inventory[]
+}
+
+model Inventory {
+  id           String      @id @default(uuid())
+  productId    String
+  product      Product     @relation(fields: [productId], references: [id], onDelete: Cascade)
+  serialNumber String?     @unique
+  status       String      @default("available") // "available", "rented", "maintenance", "damaged", "lost"
+  notes        String?
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  orderItems   OrderItem[]
+}
+
+model Order {
+  id               String       @id // SO-format ID e.g., SO0001
+  userId           String?
+  user             User?        @relation(fields: [userId], references: [id])
+  customerName     String       // Direct customer name (especially for seed or guest flow)
+  status           String       @default("reserved") // "quotation", "reserved", "picked_up", "returned", "late_return", "cancelled"
+  pickupDate       DateTime
+  returnDate       DateTime
+  total            Float
+  depositHeld      Float
+  invoiceStatus    String       @default("invoiced") // "invoiced", "confirmed", "quotation_sent", "nothing_to_invoice"
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+  orderItems       OrderItem[]
+  quotation        Quotation?
+  returnDetails    Return?
+  settlement       Settlement?
+}
+
+model OrderItem {
+  id            String     @id @default(uuid())
+  orderId       String
+  order         Order      @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId     String
+  product       Product    @relation(fields: [productId], references: [id])
+  inventoryId   String?
+  inventory     Inventory? @relation(fields: [inventoryId], references: [id])
+  qty           Int
+  priceSnapshot Float      // Price per day/hour/week at the time of order
+}
+
+model Quotation {
+  id              String   @id @default(uuid())
+  orderId         String   @unique
+  order           Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  validityDays    Int      @default(7)
+  paymentTermsPct Int      @default(50)
+  createdAt       DateTime @default(now())
+}
+
+model Return {
+  id               String   @id @default(uuid())
+  orderId          String   @unique
+  order            Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  actualReturnDate DateTime @default(now())
+  condition        String   @default("good") // "good", "damaged", "missing"
+  notes            String?
+  createdAt        DateTime @default(now())
+}
+
+model Settlement {
+  id              String   @id @default(uuid())
+  orderId         String   @unique
+  order           Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  isLate          Boolean  @default(false)
+  hoursLate       Int      @default(0)
+  lateFee         Float    @default(0.0)
+  damageFee       Float    @default(0.0)
+  missingAccFee   Float    @default(0.0)
+  totalDeductions Float    @default(0.0)
+  refund          Float    @default(0.0)
+  status          String   @default("pending") // "pending", "settled"
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model QuotationTemplate {
+  id              String   @id @default(uuid())
+  name            String
+  validityDays    Int
+  paymentTermsPct Int
+  createdAt       DateTime @default(now())
+}
+
+model PriceList {
+  id        String   @id @default(uuid())
+  name      String
+  isDefault Boolean  @default(false)
+  rules     String   // JSON string of rules
+  createdAt DateTime @default(now())
+}
+
+model Attribute {
+  id          String   @id @default(uuid())
+  name        String
+  displayType String   // "Radio", "Pills", "Select"
+  values      String   // JSON array of values (e.g. ["Sony", "Canon"])
+  createdAt   DateTime @default(now())
+}
+
+model SystemSettings {
+  id                     Int      @id @default(1)
+  enableLateFee          Boolean  @default(true)
+  globalLateFeePerHour   Float    @default(10.0)
+  globalGracePeriodHours Float    @default(1.0)
+  maxLateFeeLimit        Float    @default(200.0)
+  enableAttributes       Boolean  @default(true)
+  enablePriceLists       Boolean  @default(true)
+  companyHeader          String   @default("RentFlow Enterprise — Modern Equipment Rentals")
+  companyFooter          String   @default("Thank you for renting with RentFlow! For support, contact support@rentflow.io")
+}

@@ -7,7 +7,6 @@ dist/
 backend/node_modules/
 backend/.env
 backend/data/
-backend/prisma/migrations/
 
 # Logs
 *.log
