@@ -2,3 +2,13 @@ node_modules/
 dist/
 .env
 .DS_Store
+
+# Backend
+backend/node_modules/
+backend/.env
+backend/data/
+backend/prisma/migrations/
+
+# Logs
+*.log
+npm-debug.log*
