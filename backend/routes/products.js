@@ -1,19 +1,26 @@
 /**
  * routes/products.js
- * Product and inventory routes — /api/products
- * Implemented in Stage 4: feat: add product and inventory APIs
+ * Routing for products catalog and inventory status verification/management.
  */
 
 const { Router } = require("express");
+const productController = require("../controllers/productController");
+const { requireAuth, requireAdmin } = require("../middleware/auth");
 
 const router = Router();
 
-// Placeholder — routes will be implemented in Stage 4
-router.all("*", (req, res) => {
-  res.status(501).json({
-    success: false,
-    error: { message: "Product routes not yet implemented — coming in Stage 4." },
-  });
-});
+// Public routes
+router.get("/", productController.getProducts);
+router.get("/:id", productController.getProduct);
+router.get("/:id/availability", productController.checkAvailability);
+
+// Admin-only product management routes
+router.post("/", requireAuth, requireAdmin, productController.create);
+router.put("/:id", requireAuth, requireAdmin, productController.update);
+router.delete("/:id", requireAuth, requireAdmin, productController.remove);
+
+// Admin-only inventory tracking routes
+router.get("/:id/inventory", requireAuth, requireAdmin, productController.getInventoryItems);
+router.put("/:id/inventory/:invId", requireAuth, requireAdmin, productController.updateInventorySlot);
 
 module.exports = router;
