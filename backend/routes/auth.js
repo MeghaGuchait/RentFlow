@@ -1,19 +1,20 @@
 /**
  * routes/auth.js
- * Authentication routes — POST /api/auth/register, /login, GET /api/auth/me
- * Implemented in Stage 3: feat: add authentication and authorization
+ * Routing for user registration, local login, profile fetch, and social login verification.
  */
 
 const { Router } = require("express");
+const authController = require("../controllers/authController");
+const { requireAuth } = require("../middleware/auth");
 
 const router = Router();
 
-// Placeholder — routes will be implemented in Stage 3
-router.all("*", (req, res) => {
-  res.status(501).json({
-    success: false,
-    error: { message: "Auth routes not yet implemented — coming in Stage 3." },
-  });
-});
+// Public endpoints
+router.post("/register", authController.register);
+router.post("/login", authController.login);
+router.post("/google", authController.googleLogin);
+
+// Protected endpoints
+router.get("/me", requireAuth, authController.getMe);
 
 module.exports = router;
