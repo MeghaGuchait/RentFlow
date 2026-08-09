@@ -6,12 +6,22 @@
 const prisma = require("../config/database");
 const productService = require("./productService");
 
-/**
- * Generate a sequential order ID in format SOXXXX (e.g. SO0006)
- */
 async function generateOrderId() {
-  const count = await prisma.order.count();
-  return `SO${String(count + 1).padStart(4, "0")}`;
+  const latestOrder = await prisma.order.findFirst({
+    where: {
+      id: { startsWith: "SO" },
+    },
+    orderBy: { id: "desc" },
+  });
+
+  if (!latestOrder) {
+    return "SO0001";
+  }
+
+  const latestId = latestOrder.id;
+  const numStr = latestId.replace("SO", "");
+  const nextNum = (parseInt(numStr, 10) || 0) + 1;
+  return `SO${String(nextNum).padStart(4, "0")}`;
 }
 
 /**
