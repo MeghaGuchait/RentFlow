@@ -23,7 +23,8 @@ export default function QuotationTemplate() {
   const handleRemoveLine = (idx) => {
     setLines(lines.filter((_, i) => i !== idx));
   };
-  const handleCreate = () => {                                                                      if (!name.trim()) return;
+  const handleCreate = () => {
+    if (!name.trim()) return;
     addTemplate({
       name,
       validityDays,
@@ -36,16 +37,21 @@ export default function QuotationTemplate() {
     setName("");
     setLines([{ productId: products[0]?.id || "", qty: 1, unitPrice: 45 }]);
   };
+
   return (
-    <AdminLayout title="Quotation Templates">                                                                                                          <div className="mb-5 flex items-center justify-between">
-        <p className="text-xs text-brand-text/50">
+    <AdminLayout title="Quotation Templates">
+      <div className="mb-5 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <p className="text-xs text-brand-text/50 max-w-2xl">
           Create standardized quotation templates with validity days, payment terms %, and default product lines for fast quotation generation.
         </p>
         <Button size="sm" onClick={() => setOpen(true)}>
           <Plus size={14} /> New Template
         </Button>
+      </div>
+
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {templates.map((t) => (                                                                                          <Card key={t.id} className="p-5 flex flex-col justify-between space-y-3">
+        {templates.map((t) => (
+          <Card key={t.id} className="p-5 flex flex-col justify-between space-y-3">
             <div>
               <div className="flex items-center justify-between">
                 <h3 className="font-semibold text-brand-text text-base">{t.name}</h3>
@@ -69,7 +75,8 @@ export default function QuotationTemplate() {
                   })}
                 </div>
               )}
-            </div>                                                                                                     <div className="flex items-center gap-2 pt-2 border-t border-brand-text/5">
+            </div>
+            <div className="flex items-center gap-2 pt-2 border-t border-brand-text/5">
               <Button size="sm" variant="outline" className="flex-1">
                 Edit Template
               </Button>
@@ -83,12 +90,33 @@ export default function QuotationTemplate() {
             </div>
           </Card>
         ))}
-      </div>                                                          <Modal open={open} onClose={() => setOpen(false)} title="New Quotation Template &amp; Quote Builder">
+      </div>
+
+      <Modal open={open} onClose={() => setOpen(false)} title="New Quotation Template &amp; Quote Builder">
         <div className="space-y-4 text-xs">
-          <Input label="Template Name" value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Home Rental Furniture" />
-          <div className="grid grid-cols-2 gap-3">                                                                                   <Input label="Validity (Days)" type="number" value={validityDays} onChange={(e) => setValidityDays(+e.target.value)} />
-            <Input label="Payment Terms (% Advance)" type="number" value={paymentTermsPct} onChange={(e) => setPaymentTermsPct(+e.target.value)} />
-          </div>                                                                                                              <div>
+          <Input
+            label="Template Name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="e.g. Home Rental Furniture"
+          />
+
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <Input
+              label="Validity (Days)"
+              type="number"
+              value={validityDays}
+              onChange={(e) => setValidityDays(+e.target.value)}
+            />
+            <Input
+              label="Payment Terms (% Advance)"
+              type="number"
+              value={paymentTermsPct}
+              onChange={(e) => setPaymentTermsPct(+e.target.value)}
+            />
+          </div>
+
+          <div>
             <label className="block font-semibold text-brand-text mb-1">Header Note</label>
             <input
               className="w-full rounded-lg border border-brand-text/15 px-3 py-1.5 text-xs"
@@ -96,6 +124,7 @@ export default function QuotationTemplate() {
               onChange={(e) => setHeaderNote(e.target.value)}
             />
           </div>
+
           <div>
             <label className="block font-semibold text-brand-text mb-1">Footer Note</label>
             <input
@@ -103,11 +132,16 @@ export default function QuotationTemplate() {
               value={footerNote}
               onChange={(e) => setFooterNote(e.target.value)}
             />
-          </div>                                                                                                                   {/* Quote Builder Lines */}
+          </div>
+
           <div className="space-y-2 pt-2 border-t border-brand-text/10">
             <div className="flex items-center justify-between">
               <p className="font-semibold text-brand-text">Quote Lines</p>
-              <button type="button" onClick={handleAddLine} className="text-xs font-semibold text-brand-accent hover:underline flex items-center gap-1">
+              <button
+                type="button"
+                onClick={handleAddLine}
+                className="text-xs font-semibold text-brand-accent hover:underline flex items-center gap-1"
+              >
                 <Plus size={13} /> Add Product Line
               </button>
             </div>
@@ -121,9 +155,12 @@ export default function QuotationTemplate() {
                     const updated = [...lines];
                     updated[idx] = { ...updated[idx], productId: e.target.value, unitPrice: p?.pricePerDay || 20 };
                     setLines(updated);
-                  }}                                                                                                >
+                  }}
+                >
                   {products.map((p) => (
-                    <option key={p.id} value={p.id}>{p.name}</option>
+                    <option key={p.id} value={p.id}>
+                      {p.name}
+                    </option>
                   ))}
                 </select>
                 <input
@@ -143,7 +180,11 @@ export default function QuotationTemplate() {
               </div>
             ))}
           </div>
-          <Button className="w-full mt-2" onClick={handleCreate}>Save Quotation Template</Button>                                                                          </div>
+
+          <Button className="w-full mt-2" onClick={handleCreate}>
+            Save Quotation Template
+          </Button>
+        </div>
       </Modal>
     </AdminLayout>
   );
