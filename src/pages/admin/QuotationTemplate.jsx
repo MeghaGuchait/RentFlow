@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import React, { useState } from "react";
 import { Plus, Trash2 } from "lucide-react";
 import AdminLayout from "../../components/AdminLayout.jsx";
 import Card from "../../components/ui/Card.jsx";
@@ -8,28 +9,30 @@ import Modal from "../../components/ui/Modal.jsx";
 import { useStore } from "../../context/StoreContext.jsx";
 
 export default function QuotationTemplate() {
-  const { templates, products, addTemplate, deleteTemplate } = useStore();
+  const { templates = [], products = [], addTemplate, deleteTemplate } = useStore();
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
   const [validityDays, setValidityDays] = useState(7);
   const [paymentTermsPct, setPaymentTermsPct] = useState(50);
   const [headerNote, setHeaderNote] = useState("Official Quotation — RentFlow Equipment Solutions");
   const [footerNote, setFooterNote] = useState("Valid for specified days. Security deposit refundable upon return inspection.");
-  const [lines, setLines] = useState([
-    { productId: products[0]?.id || "", qty: 1, unitPrice: products[0]?.pricePerDay || 45 },
-  ]);
+
+  const defaultProductId = products[0]?.id || "";
+  const defaultPrice = products[0]?.pricePerDay || 45;
+  const [lines, setLines] = useState([{ productId: defaultProductId, qty: 1, unitPrice: defaultPrice }]);
 
   const handleAddLine = () => {
-    setLines([...lines, { productId: products[0]?.id || "", qty: 1, unitPrice: 20 }]);
+    setLines((s) => [...s, { productId: defaultProductId, qty: 1, unitPrice: 20 }]);
   };
 
   const handleRemoveLine = (idx) => {
-    setLines(lines.filter((_, i) => i !== idx));
+    setLines((s) => s.filter((_, i) => i !== idx));
   };
 
   const handleCreate = () => {
     if (!name.trim()) return;
     addTemplate({
+      id: Date.now().toString(),
       name,
       validityDays,
       paymentTermsPct,
@@ -39,7 +42,7 @@ export default function QuotationTemplate() {
     });
     setOpen(false);
     setName("");
-    setLines([{ productId: products[0]?.id || "", qty: 1, unitPrice: 45 }]);
+    setLines([{ productId: defaultProductId, qty: 1, unitPrice: defaultPrice }]);
   };
 
   return (
@@ -106,7 +109,7 @@ export default function QuotationTemplate() {
             placeholder="e.g. Home Rental Furniture"
           />
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <Input
               label="Validity (days)"
               type="number"
